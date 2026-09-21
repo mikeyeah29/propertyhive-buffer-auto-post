@@ -27,10 +27,10 @@ class ImageValidator {
 				);
 				continue;
 			}
-			if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+			if ( ! $this->is_public_https_url( $url ) ) {
 				$rejections[] = sprintf(
 					/* translators: %d: Property image position. */
-					__( 'Image %d is not served over HTTPS.', 'propertyhive-buffer-auto-post' ),
+					__( 'Image %d does not use a public HTTPS URL. Buffer downloads images from their URLs and cannot access HTTP-only or local development addresses such as .test sites.', 'propertyhive-buffer-auto-post' ),
 					$position
 				);
 				continue;
@@ -83,6 +83,21 @@ class ImageValidator {
 			return new \WP_Error( 'no_images', $message );
 		}
 		return $valid;
+	}
+
+	/** Reject URL forms that Buffer cannot resolve from its own infrastructure. */
+	private function is_public_https_url( $url ) {
+		if ( 'https' !== wp_parse_url( $url, PHP_URL_SCHEME ) ) {
+			return false;
+		}
+		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		if ( '' === $host || preg_match( '/(?:^localhost$|\.(?:test|local|localhost|invalid)$)/', $host ) ) {
+			return false;
+		}
+		if ( filter_var( $host, FILTER_VALIDATE_IP ) && ! filter_var( $host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
+			return false;
+		}
+		return true;
 	}
 
 	/** Read local or remote image metadata without retaining a download. */

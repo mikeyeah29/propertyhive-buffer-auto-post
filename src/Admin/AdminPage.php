@@ -261,13 +261,52 @@ else :
 		<section class="phbap-section phbap-test" aria-labelledby="phbap-test-heading">
 			<h2 id="phbap-test-heading"><?php esc_html_e( 'Send a Buffer draft', 'propertyhive-buffer-auto-post' ); ?></h2>
 			<p class="description"><?php esc_html_e( 'Preview real Property Hive data, then create a clearly logged draft on every selected channel. Tests never alter automatic-event history.', 'propertyhive-buffer-auto-post' ); ?></p>
-			<div class="phbap-search-row"><div class="phbap-field"><label for="phbap-property-query"><?php esc_html_e( 'Find a property', 'propertyhive-buffer-auto-post' ); ?></label><input type="search" id="phbap-property-query" autocomplete="off"></div><button type="button" class="button" id="phbap-search-properties"><?php esc_html_e( 'Search', 'propertyhive-buffer-auto-post' ); ?></button></div>
-			<div class="phbap-field"><label for="phbap-property-id"><?php esc_html_e( 'Property', 'propertyhive-buffer-auto-post' ); ?></label><select id="phbap-property-id"><option value=""><?php esc_html_e( 'Search and select a property', 'propertyhive-buffer-auto-post' ); ?></option></select></div>
-			<div class="phbap-field"><label for="phbap-event-type"><?php esc_html_e( 'Template', 'propertyhive-buffer-auto-post' ); ?></label><select id="phbap-event-type"><option value="new_listing"><?php esc_html_e( 'New listing', 'propertyhive-buffer-auto-post' ); ?></option><option value="price_reduction"><?php esc_html_e( 'Price reduction', 'propertyhive-buffer-auto-post' ); ?></option><option value="sold"><?php esc_html_e( 'Property sold', 'propertyhive-buffer-auto-post' ); ?></option></select></div>
-			<div class="phbap-field" id="phbap-previous-price-field" hidden><label for="phbap-previous-price"><?php esc_html_e( 'Previous price', 'propertyhive-buffer-auto-post' ); ?></label><input type="number" min="1" step="1" id="phbap-previous-price"></div>
-			<p><button type="button" class="button" id="phbap-preview-test"><?php esc_html_e( 'Preview', 'propertyhive-buffer-auto-post' ); ?></button> <button type="button" class="button button-primary" id="phbap-send-test" disabled><?php esc_html_e( 'Create Buffer drafts', 'propertyhive-buffer-auto-post' ); ?></button></p>
+			<div class="phbap-search-row">
+				<div class="phbap-field">
+					<label for="phbap-property-query"><?php esc_html_e( 'Find a property', 'propertyhive-buffer-auto-post' ); ?></label>
+					<input type="search" id="phbap-property-query" autocomplete="off">
+				</div>
+				<button type="button" class="button" id="phbap-search-properties"><?php esc_html_e( 'Search', 'propertyhive-buffer-auto-post' ); ?></button>
+			</div>
+
+			<div class="phbap-field">
+				<label for="phbap-property-id"><?php esc_html_e( 'Property', 'propertyhive-buffer-auto-post' ); ?></label>
+				<select id="phbap-property-id">
+					<option value=""><?php esc_html_e( 'Search and select a property', 'propertyhive-buffer-auto-post' ); ?></option>
+				</select>
+			</div>
+
+			<div class="phbap-field">
+				<label for="phbap-event-type"><?php esc_html_e( 'Template', 'propertyhive-buffer-auto-post' ); ?></label>
+				<select id="phbap-event-type">
+					<option value="new_listing"><?php esc_html_e( 'New listing', 'propertyhive-buffer-auto-post' ); ?></option>
+					<option value="price_reduction"><?php esc_html_e( 'Price reduction', 'propertyhive-buffer-auto-post' ); ?></option>
+					<option value="sold"><?php esc_html_e( 'Property sold', 'propertyhive-buffer-auto-post' ); ?></option>
+				</select>
+			</div>
+
+			<div class="phbap-field" id="phbap-previous-price-field" hidden>
+				<label for="phbap-previous-price"><?php esc_html_e( 'Previous price', 'propertyhive-buffer-auto-post' ); ?></label>
+				<input type="number" min="1" step="1" id="phbap-previous-price">
+			</div>
+
+			<p>
+				<button type="button" class="button" id="phbap-preview-test"><?php esc_html_e( 'Preview', 'propertyhive-buffer-auto-post' ); ?></button>
+				<button type="button" class="button button-primary" id="phbap-send-test" disabled><?php esc_html_e( 'Create Buffer drafts', 'propertyhive-buffer-auto-post' ); ?></button>
+			</p>
+
 			<div id="phbap-test-status" class="phbap-live" aria-live="polite"></div>
-			<div id="phbap-test-preview" class="phbap-test-preview" hidden><div><h3><?php esc_html_e( 'Caption', 'propertyhive-buffer-auto-post' ); ?></h3><pre id="phbap-preview-caption"></pre></div><div><h3><?php esc_html_e( 'Images', 'propertyhive-buffer-auto-post' ); ?></h3><div id="phbap-preview-images" class="phbap-image-strip"></div></div></div>
+
+			<div id="phbap-test-preview" class="phbap-test-preview" hidden>
+				<div>
+					<h3><?php esc_html_e( 'Caption', 'propertyhive-buffer-auto-post' ); ?></h3>
+					<pre id="phbap-preview-caption"></pre>
+				</div>
+				<div>
+					<h3><?php esc_html_e( 'Images', 'propertyhive-buffer-auto-post' ); ?></h3>
+					<div id="phbap-preview-images" class="phbap-image-strip"></div>
+				</div>
+			</div>
 		</section>
 		<?php
 	}
