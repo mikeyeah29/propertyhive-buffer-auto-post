@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name: PropertyHive Buffer Auto Post
- * Plugin URI: https://designbyparent.co.uk/
+ * Plugin URI: https://rockettwd.co.uk/
  * Description: Sends Property Hive listing events to selected Facebook and Instagram channels through Buffer.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Requires at least: 6.5
  * Requires PHP: 7.4
- * Author: Design by Parent
- * Author URI: https://designbyparent.co.uk/
+ * Author: Rockett Web Design
+ * Author URI: https://rockettwd.co.uk/
  * Text Domain: propertyhive-buffer-auto-post
  * Domain Path: /languages
  *
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PHBAP_VERSION', '1.0.1' );
+define( 'PHBAP_VERSION', '1.0.2' );
 define( 'PHBAP_MIN_PROPERTYHIVE_VERSION', '2.0.16' );
 define( 'PHBAP_FILE', __FILE__ );
 define( 'PHBAP_PATH', plugin_dir_path( __FILE__ ) );
