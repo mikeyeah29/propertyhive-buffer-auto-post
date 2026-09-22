@@ -32,7 +32,7 @@ define( 'PHBAP_BUFFER_API_KEY', 'your-key' );
 
 Property writes only create local events; Buffer requests run through WP-Cron. Each channel is tracked independently. Definitive throttling can retry up to three total attempts, while ambiguous timeouts are marked uncertain and are not resent automatically.
 
-Buffer fetches media from public URLs when publishing. Generated sold images remain in `uploads/phbap/` until every related Buffer post reports a terminal sent/error state.
+Buffer fetches media from public URLs when publishing. Property photos are re-encoded through PHP GD or Imagick as cached, metadata-free JPEGs no larger than 1080px in `uploads/phbap/buffer/`. Generated sold images remain in `uploads/phbap/` until every related Buffer post reports a terminal sent/error state.
 
 ## Development
 

@@ -16,6 +16,7 @@ if ( $wp_tests_dir && file_exists( $wp_tests_dir . '/includes/functions.php' ) )
 
 defined( 'ABSPATH' ) || define( 'ABSPATH', dirname( __DIR__, 5 ) . '/' );
 defined( 'PHBAP_PATH' ) || define( 'PHBAP_PATH', dirname( __DIR__ ) . '/' );
+defined( 'MB_IN_BYTES' ) || define( 'MB_IN_BYTES', 1024 * 1024 );
 
 if ( ! function_exists( '__' ) ) {
 	function __( $text, $domain = '' ) {
@@ -39,8 +40,96 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	}
 }
 
-$GLOBALS['phbap_test_http_response'] = null;
-$GLOBALS['phbap_test_http_request']  = null;
+$GLOBALS['phbap_test_http_response']            = null;
+$GLOBALS['phbap_test_http_request']             = null;
+$GLOBALS['phbap_test_options']                  = array();
+$GLOBALS['phbap_test_post_meta']                = array();
+$GLOBALS['phbap_test_attachment_urls']          = array();
+$GLOBALS['phbap_test_attachment_image_urls']    = array();
+$GLOBALS['phbap_test_original_image_url_calls'] = 0;
+$GLOBALS['phbap_test_attached_files']           = array();
+$GLOBALS['phbap_test_upload_dir']               = array();
+
+if ( ! function_exists( 'get_option' ) ) {
+	function get_option( $key, $fallback = false ) {
+		return array_key_exists( $key, $GLOBALS['phbap_test_options'] ) ? $GLOBALS['phbap_test_options'][ $key ] : $fallback;
+	}
+}
+
+if ( ! function_exists( 'get_post_meta' ) ) {
+	function get_post_meta( $post_id, $key, $single = false ) {
+		unset( $single );
+		return $GLOBALS['phbap_test_post_meta'][ $post_id ][ $key ] ?? '';
+	}
+}
+
+if ( ! function_exists( 'absint' ) ) {
+	function absint( $value ) {
+		return abs( (int) $value );
+	}
+}
+
+if ( ! function_exists( 'wp_get_attachment_url' ) ) {
+	function wp_get_attachment_url( $attachment_id ) {
+		return $GLOBALS['phbap_test_attachment_urls'][ $attachment_id ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'wp_get_attachment_image_url' ) ) {
+	function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail' ) {
+		return $GLOBALS['phbap_test_attachment_image_urls'][ $attachment_id ][ $size ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'wp_get_original_image_url' ) ) {
+	function wp_get_original_image_url( $attachment_id ) {
+		unset( $attachment_id );
+		++$GLOBALS['phbap_test_original_image_url_calls'];
+		return 'https://example.com/uploads/listing-original.jpg';
+	}
+}
+
+if ( ! function_exists( 'get_attached_file' ) ) {
+	function get_attached_file( $attachment_id ) {
+		return $GLOBALS['phbap_test_attached_files'][ $attachment_id ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'wp_upload_dir' ) ) {
+	function wp_upload_dir() {
+		return $GLOBALS['phbap_test_upload_dir'];
+	}
+}
+
+if ( ! function_exists( 'wp_mkdir_p' ) ) {
+	function wp_mkdir_p( $target ) {
+		return is_dir( $target ) || mkdir( $target, 0777, true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
+	}
+}
+
+if ( ! function_exists( 'trailingslashit' ) ) {
+	function trailingslashit( $value ) {
+		return rtrim( $value, '/\\' ) . '/';
+	}
+}
+
+if ( ! function_exists( 'wp_parse_url' ) ) {
+	function wp_parse_url( $url, $component = -1 ) {
+		return parse_url( $url, $component );
+	}
+}
+
+if ( ! function_exists( 'wp_getimagesize' ) ) {
+	function wp_getimagesize( $path ) {
+		return getimagesize( $path );
+	}
+}
+
+if ( ! function_exists( 'wp_delete_file' ) ) {
+	function wp_delete_file( $path ) {
+		return file_exists( $path ) ? unlink( $path ) : true; // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+	}
+}
 
 if ( ! function_exists( 'esc_url_raw' ) ) {
 	function esc_url_raw( $url ) {

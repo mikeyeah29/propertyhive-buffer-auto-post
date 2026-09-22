@@ -100,7 +100,7 @@ class PropertySnapshot {
 		return '';
 	}
 
-	/** Original Property Hive images in stored order. */
+	/** Property Hive attachment images in stored order. */
 	private function images( $property_id ) {
 		$images = array();
 		$urls   = get_post_meta( $property_id, '_photo_urls', true );
@@ -123,7 +123,7 @@ class PropertySnapshot {
 			}
 			foreach ( is_array( $ids ) ? $ids : array() as $attachment_id ) {
 				$attachment_id = absint( $attachment_id );
-				$url           = wp_get_original_image_url( $attachment_id );
+				$url           = wp_get_attachment_image_url( $attachment_id, 'large' );
 				$url           = $url ? $url : wp_get_attachment_url( $attachment_id );
 				if ( $url ) {
 					$images[] = array(

@@ -96,12 +96,16 @@
 	const previewButton = document.getElementById( 'phbap-preview-test' );
 	const sendButton = document.getElementById( 'phbap-send-test' );
 	const testStatus = document.getElementById( 'phbap-test-status' );
+	const singleImage = document.getElementById( 'phbap-single-image' );
+	const controlImage = document.getElementById( 'phbap-control-image' );
 
 	function testValues() {
 		return {
 			property_id: propertySelect ? propertySelect.value : '',
 			event_type: eventSelect ? eventSelect.value : '',
-			previous_price: document.getElementById( 'phbap-previous-price' ) ? document.getElementById( 'phbap-previous-price' ).value : ''
+			previous_price: document.getElementById( 'phbap-previous-price' ) ? document.getElementById( 'phbap-previous-price' ).value : '',
+			single_image: singleImage && singleImage.checked ? '1' : '',
+			control_image: controlImage && controlImage.checked ? '1' : ''
 		};
 	}
 
@@ -117,6 +121,12 @@
 	const previousPrice = document.getElementById( 'phbap-previous-price' );
 	if ( previousPrice ) {
 		previousPrice.addEventListener( 'input', function () { if ( sendButton ) { sendButton.disabled = true; } } );
+	}
+	if ( singleImage ) {
+		singleImage.addEventListener( 'change', function () { if ( sendButton ) { sendButton.disabled = true; } } );
+	}
+	if ( controlImage ) {
+		controlImage.addEventListener( 'change', function () { if ( sendButton ) { sendButton.disabled = true; } } );
 	}
 
 	if ( searchButton ) {

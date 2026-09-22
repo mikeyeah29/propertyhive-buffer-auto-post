@@ -11,6 +11,7 @@ use Homer\PropertyHiveBufferAutoPost\Admin\AdminPage;
 use Homer\PropertyHiveBufferAutoPost\Content\TemplateRenderer;
 use Homer\PropertyHiveBufferAutoPost\Events\EventFactory;
 use Homer\PropertyHiveBufferAutoPost\Events\EventRepository;
+use Homer\PropertyHiveBufferAutoPost\Media\BufferImageProcessor;
 use Homer\PropertyHiveBufferAutoPost\Media\ImageValidator;
 use Homer\PropertyHiveBufferAutoPost\Media\OverlayRenderer;
 use Homer\PropertyHiveBufferAutoPost\Property\BaselineProcessor;
@@ -53,7 +54,7 @@ class Plugin {
 		);
 		if ( $dependency->compatible() ) {
 			$services[] = new BaselineProcessor( $snapshot );
-			$services[] = new Worker( $repository, new ImageValidator(), new OverlayRenderer(), $logger );
+			$services[] = new Worker( $repository, new BufferImageProcessor(), new ImageValidator(), new OverlayRenderer(), $logger );
 			$services[] = new EventDetector( $snapshot, $factory, $repository, $logger );
 		}
 

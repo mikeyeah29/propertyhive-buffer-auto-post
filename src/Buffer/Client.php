@@ -87,20 +87,20 @@ class Client {
 		if ( 429 === $response['code'] ) {
 			return array(
 				'result'      => 'retry',
-				'message'     => __( 'Buffer rate-limited the request.', 'propertyhive-buffer-auto-post' ),
+				'message'     => __( 'Buffer rate-limited the request.', 'propertyhive-buffer-auto-post' ) . $this->diagnostic_suffix( $response, (array) $payload['validated_images'] ),
 				'retry_after' => $response['retry_after'],
 			);
 		}
 		if ( in_array( $response['code'], array( 401, 403 ), true ) ) {
 			return array(
 				'result'  => 'failed',
-				'message' => __( 'Buffer rejected the API key or its permissions.', 'propertyhive-buffer-auto-post' ),
+				'message' => __( 'Buffer rejected the API key or its permissions.', 'propertyhive-buffer-auto-post' ) . $this->diagnostic_suffix( $response, (array) $payload['validated_images'] ),
 			);
 		}
 		if ( $response['code'] >= 500 ) {
 			return array(
 				'result'  => 'uncertain',
-				'message' => __( 'Buffer returned a server error; delivery may have been accepted, so it was not retried.', 'propertyhive-buffer-auto-post' ),
+				'message' => __( 'Buffer returned a server error; delivery may have been accepted, so it was not retried.', 'propertyhive-buffer-auto-post' ) . $this->diagnostic_suffix( $response, (array) $payload['validated_images'] ),
 			);
 		}
 
@@ -113,6 +113,7 @@ class Client {
 					$codes[] = (string) $error['extensions']['code'];
 				}
 			}
+			$message .= $this->diagnostic_suffix( $response, (array) $payload['validated_images'], '', $codes );
 			if ( in_array( 'RATE_LIMIT_EXCEEDED', $codes, true ) || preg_match( '/rate|thrott|too many/i', $message ) ) {
 				return array(
 					'result'      => 'retry',
@@ -143,14 +144,15 @@ class Client {
 			);
 		}
 		if ( ! empty( $result['message'] ) ) {
+			$type = isset( $result['__typename'] ) ? sanitize_text_field( $result['__typename'] ) : 'MutationError';
 			return array(
 				'result'  => 'failed',
-				'message' => sanitize_text_field( $result['message'] ),
+				'message' => sanitize_text_field( $result['message'] ) . $this->diagnostic_suffix( $response, (array) $payload['validated_images'], $type ),
 			);
 		}
 		return array(
 			'result'  => 'uncertain',
-			'message' => __( 'Buffer returned an unexpected response; the post was not retried.', 'propertyhive-buffer-auto-post' ),
+			'message' => __( 'Buffer returned an unexpected response; the post was not retried.', 'propertyhive-buffer-auto-post' ) . $this->diagnostic_suffix( $response, (array) $payload['validated_images'] ),
 		);
 	}
 
@@ -222,12 +224,59 @@ class Client {
 				return new \WP_Error( 'buffer_json', __( 'Buffer returned an unreadable response.', 'propertyhive-buffer-auto-post' ) );
 			}
 		}
-		$retry = (int) wp_remote_retrieve_header( $response, 'retry-after' );
+		$retry      = (int) wp_remote_retrieve_header( $response, 'retry-after' );
+		$request_id = '';
+		foreach ( array( 'x-request-id', 'x-correlation-id', 'x-amzn-trace-id', 'cf-ray' ) as $header ) {
+			$value = wp_remote_retrieve_header( $response, $header );
+			if ( $value ) {
+				$request_id = sanitize_text_field( $value );
+				break;
+			}
+		}
 		return array(
 			'code'        => $code,
 			'body'        => $decoded,
 			'retry_after' => $retry > 0 ? min( 21600, $retry ) : 300,
+			'request_id'  => $request_id,
 		);
+	}
+
+	/** Build a safe diagnostic suffix without logging credentials or request bodies. */
+	private function diagnostic_suffix( array $response, array $urls, $type = '', array $codes = array() ) {
+		$parts = array( 'HTTP ' . absint( $response['code'] ?? 0 ) );
+		if ( $type ) {
+			$parts[] = 'type=' . sanitize_text_field( $type );
+		}
+		if ( $codes ) {
+			$parts[] = 'codes=' . implode( ',', array_map( 'sanitize_key', array_unique( $codes ) ) );
+		}
+		if ( ! empty( $response['request_id'] ) ) {
+			$parts[] = 'request=' . sanitize_text_field( $response['request_id'] );
+		}
+
+		$files = array();
+		$hosts = array();
+		foreach ( $urls as $url ) {
+			$path = (string) parse_url( (string) $url, PHP_URL_PATH );
+			$host = (string) parse_url( (string) $url, PHP_URL_HOST );
+			if ( $path ) {
+				$files[] = sanitize_text_field( rawurldecode( basename( $path ) ) );
+			}
+			if ( $host ) {
+				$hosts[] = strtolower( sanitize_text_field( $host ) );
+			}
+		}
+		if ( $urls ) {
+			$parts[] = sprintf( 'assets=%d', count( $urls ) );
+		}
+		if ( $hosts ) {
+			$parts[] = 'hosts=' . implode( ',', array_unique( $hosts ) );
+		}
+		if ( $files ) {
+			$parts[] = 'files=' . implode( ',', array_slice( $files, 0, 3 ) ) . ( count( $files ) > 3 ? ',…' : '' );
+		}
+
+		return ' [Diagnostics: ' . implode( '; ', $parts ) . ']';
 	}
 
 	/** Collapse GraphQL errors to a safe human-readable message. */

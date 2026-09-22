@@ -23,6 +23,7 @@ class AdminPage implements Hookable {
 	private $factory;
 	private $repository;
 	private $logger;
+	private $control_image = 'https://homerestates.com/wp-content/uploads/2025/10/homer-1024x576.jpeg';
 
 	public function __construct( Dependency $dependency, EventFactory $factory, EventRepository $repository, Logger $logger ) {
 		$this->dependency = $dependency;
@@ -290,6 +291,9 @@ else :
 				<input type="number" min="1" step="1" id="phbap-previous-price">
 			</div>
 
+			<label class="phbap-choice"><input type="checkbox" id="phbap-single-image" value="1"><span><strong><?php esc_html_e( 'Single-image diagnostic', 'propertyhive-buffer-auto-post' ); ?></strong><small><?php esc_html_e( 'Preview and send only the first property image to isolate carousel errors.', 'propertyhive-buffer-auto-post' ); ?></small></span></label>
+			<label class="phbap-choice"><input type="checkbox" id="phbap-control-image" value="1"><span><strong><?php esc_html_e( 'External control image', 'propertyhive-buffer-auto-post' ); ?></strong><small><?php esc_html_e( 'Replace the property images with Buffer’s documented public sample image to test whether Buffer can fetch another host.', 'propertyhive-buffer-auto-post' ); ?></small></span></label>
+
 			<p>
 				<button type="button" class="button" id="phbap-preview-test"><?php esc_html_e( 'Preview', 'propertyhive-buffer-auto-post' ); ?></button>
 				<button type="button" class="button button-primary" id="phbap-send-test" disabled><?php esc_html_e( 'Create Buffer drafts', 'propertyhive-buffer-auto-post' ); ?></button>
@@ -312,7 +316,9 @@ else :
 	}
 
 	private function render_log() {
+
 		$rows = $this->logger->recent();
+		
 		?>
 		<section class="phbap-section phbap-log">
 			<div class="phbap-section-heading">
@@ -507,6 +513,8 @@ else :
 		$property_id    = isset( $_POST['property_id'] ) ? absint( $_POST['property_id'] ) : 0;
 		$event_type     = isset( $_POST['event_type'] ) ? sanitize_key( wp_unslash( $_POST['event_type'] ) ) : '';
 		$previous_price = isset( $_POST['previous_price'] ) ? (float) sanitize_text_field( wp_unslash( $_POST['previous_price'] ) ) : 0;
+		$single_image   = ! empty( $_POST['single_image'] );
+		$control_image  = ! empty( $_POST['control_image'] );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		if ( ! $property_id || ! in_array( $event_type, array( 'new_listing', 'price_reduction', 'sold' ), true ) ) {
 			return new \WP_Error( 'test_fields', __( 'Select a property and template.', 'propertyhive-buffer-auto-post' ) );
@@ -514,7 +522,21 @@ else :
 		if ( 'price_reduction' === $event_type && $previous_price <= 0 ) {
 			return new \WP_Error( 'previous_price', __( 'Enter the previous price for a price-reduction test.', 'propertyhive-buffer-auto-post' ) );
 		}
-		return $this->factory->create( $property_id, $event_type, $previous_price, 'manual_test' );
+		$payload = $this->factory->create( $property_id, $event_type, $previous_price, 'manual_test' );
+		if ( ! is_wp_error( $payload ) ) {
+			if ( $control_image ) {
+				$payload['images'] = array(
+					array(
+						'url'             => $this->control_image,
+						'attachment_id'   => 0,
+						'skip_processing' => true,
+					),
+				);
+			} elseif ( $single_image ) {
+				$payload['images'] = array_slice( (array) $payload['images'], 0, 1 );
+			}
+		}
+		return $payload;
 	}
 
 	private function guard_post( $action ) {

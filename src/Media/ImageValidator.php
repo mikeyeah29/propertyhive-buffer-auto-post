@@ -35,7 +35,7 @@ class ImageValidator {
 				);
 				continue;
 			}
-			$details = $this->details( $url, absint( $image['attachment_id'] ?? 0 ) );
+			$details = $this->details( $url, $image );
 			if ( is_wp_error( $details ) ) {
 				$rejections[] = sprintf(
 					/* translators: %d: Property image position. */
@@ -101,9 +101,12 @@ class ImageValidator {
 	}
 
 	/** Read local or remote image metadata without retaining a download. */
-	private function details( $url, $attachment_id ) {
+	private function details( $url, array $image ) {
 		$temporary = '';
-		$path      = $attachment_id ? get_attached_file( $attachment_id ) : '';
+		$path      = ! empty( $image['path'] ) && is_readable( $image['path'] ) ? $image['path'] : '';
+		if ( ! $path && ! empty( $image['attachment_id'] ) ) {
+			$path = get_attached_file( absint( $image['attachment_id'] ) );
+		}
 		if ( ! $path || ! is_readable( $path ) ) {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 			$temporary = download_url( $url, 20 );

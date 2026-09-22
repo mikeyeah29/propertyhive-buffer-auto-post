@@ -10,17 +10,20 @@ namespace Homer\PropertyHiveBufferAutoPost;
 use Homer\PropertyHiveBufferAutoPost\Buffer\Client;
 use Homer\PropertyHiveBufferAutoPost\Contracts\Hookable;
 use Homer\PropertyHiveBufferAutoPost\Events\EventRepository;
+use Homer\PropertyHiveBufferAutoPost\Media\BufferImageProcessor;
 use Homer\PropertyHiveBufferAutoPost\Media\ImageValidator;
 use Homer\PropertyHiveBufferAutoPost\Media\OverlayRenderer;
 
 class Worker implements Hookable {
 	private $repository;
+	private $processor;
 	private $validator;
 	private $overlay;
 	private $logger;
 
-	public function __construct( EventRepository $repository, ImageValidator $validator, OverlayRenderer $overlay, Logger $logger ) {
+	public function __construct( EventRepository $repository, BufferImageProcessor $processor, ImageValidator $validator, OverlayRenderer $overlay, Logger $logger ) {
 		$this->repository = $repository;
+		$this->processor  = $processor;
 		$this->validator  = $validator;
 		$this->overlay    = $overlay;
 		$this->logger     = $logger;
@@ -93,7 +96,13 @@ class Worker implements Hookable {
 			),
 		);
 		if ( empty( $payload['validated_images'] ) ) {
-			$images = $this->validator->validate( (array) $payload['images'], $channels );
+			$processed = $this->processor->process( (array) $payload['images'] );
+			if ( is_wp_error( $processed ) ) {
+				$this->finish( $delivery, $event, 'failed', $processed->get_error_message() );
+				return;
+			}
+			$payload['images'] = $processed;
+			$images            = $this->validator->validate( $processed, $channels );
 			if ( is_wp_error( $images ) ) {
 				$this->finish( $delivery, $event, 'failed', $images->get_error_message() );
 				return;
@@ -105,7 +114,14 @@ class Worker implements Hookable {
 					$this->finish( $delivery, $event, 'failed', __( 'A sold overlay has not been configured.', 'propertyhive-buffer-auto-post' ) );
 					return;
 				}
-				$derived = $this->overlay->render( $images[0], $payload['overlay_id'], $event->event_key );
+				$base_path = '';
+				foreach ( $processed as $processed_image ) {
+					if ( $images[0] === $processed_image['url'] ) {
+						$base_path = isset( $processed_image['path'] ) ? $processed_image['path'] : '';
+						break;
+					}
+				}
+				$derived = $this->overlay->render( $images[0], $payload['overlay_id'], $event->event_key, $base_path );
 				if ( is_wp_error( $derived ) ) {
 					$this->finish( $delivery, $event, 'failed', $derived->get_error_message() );
 					return;

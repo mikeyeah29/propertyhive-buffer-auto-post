@@ -9,15 +9,15 @@ namespace Homer\PropertyHiveBufferAutoPost\Media;
 
 class OverlayRenderer {
 	/** Generate a stable public PNG without modifying source media. */
-	public function render( $base_url, $overlay_id, $event_key ) {
+	public function render( $base_url, $overlay_id, $event_key, $processed_path = '' ) {
 		$overlay = get_attached_file( absint( $overlay_id ) );
 		if ( ! $overlay || ! is_readable( $overlay ) || 'image/png' !== get_post_mime_type( $overlay_id ) ) {
 			return new \WP_Error( 'overlay_missing', __( 'A valid transparent PNG sold overlay is required.', 'propertyhive-buffer-auto-post' ) );
 		}
 
-		$base_path = '';
+		$base_path = $processed_path && is_readable( $processed_path ) ? $processed_path : '';
 		$temporary = '';
-		$base_id   = attachment_url_to_postid( $base_url );
+		$base_id   = $base_path ? 0 : attachment_url_to_postid( $base_url );
 		if ( $base_id ) {
 			$base_path = get_attached_file( $base_id );
 		}
